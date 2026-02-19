@@ -70,7 +70,7 @@ export class VolkernClient {
     }
 
     static async getAvailability(fecha: string, duracion: number = 60): Promise<AvailabilityResponse> {
-        return this.request<AvailabilityResponse>(`/citas/disponibilidad?fecha=${fecha}&duracion=${duracion}`);
+        return this.request<AvailabilityResponse>(`/citas/disponibilidad?fecha=${fecha}&duracion=${duracion}&timezone=Europe/Madrid`);
     }
 
     static async upsertLead(leadData: Lead): Promise<Lead> {

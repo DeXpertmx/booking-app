@@ -22,11 +22,21 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setLoading(true);
+        setError(null);
+        console.log(`[DateTimePicker] Fetching availability for ${selectedDate}, duration ${service.duracionMinutos}`);
         VolkernClient.getAvailability(selectedDate, service.duracionMinutos)
-            .then(setAvailability)
+            .then((data) => {
+                console.log("[DateTimePicker] Availability data received:", data);
+                setAvailability(data);
+            })
+            .catch((err) => {
+                console.error("[DateTimePicker] Error fetching availability:", err);
+                setError("No se pudo cargar la disponibilidad.");
+            })
             .finally(() => setLoading(false));
     }, [selectedDate, service.duracionMinutos]);
 
@@ -93,19 +103,29 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
                 <div className="space-y-4">
                     <label className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Horarios Disponibles</label>
 
-                    {loading ? (
+                    {error ? (
+                        <div className="p-8 text-center glass rounded-2xl border-red-200">
+                            <p className="text-red-500 font-medium">{error}</p>
+                            <button
+                                onClick={() => setSelectedDate(selectedDate)}
+                                className="mt-2 text-primary text-sm font-bold hover:underline"
+                            >
+                                Reintentar
+                            </button>
+                        </div>
+                    ) : loading ? (
                         <div className="grid grid-cols-3 gap-2">
                             {[1, 2, 3, 4, 5, 6].map(i => (
                                 <div key={i} className="h-12 bg-slate-100 animate-pulse rounded-xl" />
                             ))}
                         </div>
-                    ) : availability?.disponibles.slots.length === 0 ? (
+                    ) : (availability?.disponibles?.slots?.length || 0) === 0 ? (
                         <div className="p-8 text-center glass rounded-2xl">
                             <p className="text-slate-500">No hay horarios disponibles para este día.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-3 gap-2">
-                            {availability?.disponibles.slots.map((slot) => {
+                            {availability?.disponibles?.slots?.map((slot) => {
                                 const time = new Date(slot).toLocaleTimeString('es', {
                                     hour: '2-digit',
                                     minute: '2-digit',
