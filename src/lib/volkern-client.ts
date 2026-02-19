@@ -78,7 +78,13 @@ export class VolkernClient {
             // Search returns an array of leads directly
             const leads = await this.request<Lead[]>(`/leads?query=${encodeURIComponent(email)}`);
             if (Array.isArray(leads) && leads.length > 0) {
-                return leads[0];
+                // IMPORTANT: The API performs a fuzzy search. We MUST filter by exact email match.
+                const exactMatch = leads.find(l => l.email.toLowerCase() === email.toLowerCase());
+                if (exactMatch) {
+                    console.log(`[VolkernClient] Found exact match for ${email}: ${exactMatch.id}`);
+                    return exactMatch;
+                }
+                console.log(`[VolkernClient] No exact match found for ${email} in ${leads.length} results.`);
             }
             return null;
         } catch (error) {
