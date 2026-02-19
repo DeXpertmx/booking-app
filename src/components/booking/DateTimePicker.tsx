@@ -105,10 +105,11 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
 
                     {error ? (
                         <div className="p-8 text-center glass rounded-2xl border-red-200">
-                            <p className="text-red-500 font-medium">{error}</p>
+                            <p className="text-red-500 font-medium">Error de conexión</p>
+                            <p className="text-slate-500 text-xs mt-1 mb-4">{error}</p>
                             <button
                                 onClick={() => setSelectedDate(selectedDate)}
-                                className="mt-2 text-primary text-sm font-bold hover:underline"
+                                className="px-4 py-2 bg-primary/10 text-primary text-sm font-bold rounded-xl hover:bg-primary/20 transition-colors"
                             >
                                 Reintentar
                             </button>
