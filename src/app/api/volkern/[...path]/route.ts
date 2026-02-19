@@ -1,0 +1,91 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+const BASE_URL = process.env.VOLKERN_BASE_URL || 'https://volkern.app/api';
+const API_KEY = process.env.VOLKERN_API_KEY;
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+    return handleRequest(request, params);
+}
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+    return handleRequest(request, params);
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+    return handleRequest(request, params);
+}
+
+async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path: string[] }>) {
+    try {
+        const { path: pathSegments } = await paramsPromise;
+        const path = pathSegments.join('/');
+        const searchParams = request.nextUrl.searchParams.toString();
+        const url = `${BASE_URL}/${path}${searchParams ? `?${searchParams}` : ''}`;
+
+        console.log(`[Proxy] ${request.method} -> ${url}`);
+
+        if (!API_KEY) {
+            console.error('[Proxy Error] VOLKERN_API_KEY is not defined in environment variables');
+            return NextResponse.json({ error: 'Server Configuration Error: Missing API Key' }, { status: 500 });
+        }
+
+        let body;
+        if (request.method !== 'GET' && request.method !== 'HEAD') {
+            try {
+                body = await request.json();
+            } catch (e) {
+                // Body might be empty or not JSON
+            }
+        }
+
+        // IMPORTANT: Using X-API-Key as per working test script
+        const response = await fetch(url, {
+            method: request.method,
+            headers: {
+                'X-API-Key': API_KEY,
+                'Content-Type': 'application/json',
+            },
+            body: body ? JSON.stringify(body) : undefined,
+            redirect: 'manual', // Prevent following redirects (like to login page)
+        });
+
+        console.log(`[Proxy] Response: ${response.status}`);
+
+        if (response.status === 302 || response.status === 301 || response.status === 307 || response.status === 308) {
+            const location = response.headers.get('location');
+            console.error(`[Proxy Error] API redirected to: ${location}. This usually means Authentication failed.`);
+            return NextResponse.json({
+                error: 'Authentication Redirect',
+                details: 'The API redirected to a login page. Check your VOLKERN_API_KEY.',
+                target: location
+            }, { status: 401 });
+        }
+
+        const contentType = response.headers.get('content-type');
+        let data;
+
+        if (contentType?.includes('application/json')) {
+            data = await response.json();
+
+            // LOG DATA STRUCTURE FOR DEBUGGING (if services list)
+            if (path.includes('servicios') && request.method === 'GET') {
+                console.log('[Proxy Debug] Services response keys:', Object.keys(data));
+            }
+        } else {
+            const text = await response.text();
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                data = { message: text };
+            }
+        }
+
+        return NextResponse.json(data, { status: response.status });
+    } catch (error: any) {
+        console.error('[Proxy Error]:', error);
+        return NextResponse.json({
+            error: 'Proxy Internal Error',
+            message: error.message
+        }, { status: 500 });
+    }
+}
