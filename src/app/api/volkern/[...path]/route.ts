@@ -29,6 +29,9 @@ async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path
             return NextResponse.json({ error: 'Server Configuration Error: Missing API Key' }, { status: 500 });
         }
 
+        console.log(`[Proxy] Method: ${request.method} | URL: ${url}`);
+        console.log(`[Proxy] API Key present: ${!!API_KEY} (Starts with: ${API_KEY.substring(0, 8)}...)`);
+
         let body;
         if (request.method !== 'GET' && request.method !== 'HEAD') {
             try {
@@ -49,11 +52,11 @@ async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path
             redirect: 'manual', // Prevent following redirects (like to login page)
         });
 
-        console.log(`[Proxy] Response: ${response.status}`);
+        console.log(`[Proxy] Status: ${response.status} from ${url}`);
 
         if (response.status === 302 || response.status === 301 || response.status === 307 || response.status === 308) {
             const location = response.headers.get('location');
-            console.error(`[Proxy Error] API redirected to: ${location}. This usually means Authentication failed.`);
+            console.error(`[Proxy Error] API redirected to: ${location}.`);
             return NextResponse.json({
                 error: 'Authentication Redirect',
                 details: 'The API redirected to a login page. Check your VOLKERN_API_KEY.',
