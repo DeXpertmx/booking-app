@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Volkern Appointment Booking App
 
-## Getting Started
+Una aplicación de agendamiento de citas premium, moderna y robusta, integrada con el CRM de Volkern. Diseñada para ofrecer una experiencia de usuario de alto nivel con un enfoque en la velocidad de conversión y diseño impecable.
 
-First, run the development server:
+## 🚀 Características
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Diseño Premium**: Interfaz moderna con efectos de Glassmorphism, animaciones fluidas (`framer-motion`) y modo oscuro integrado.
+- **Flujo de Reserva Inteligente**: Selección de servicios, selector de fecha/hora con disponibilidad en tiempo real y captura de leads.
+- **Integración con Volkern CRM**: Sincronización automática de leads y citas.
+- **Resiliencia de API**: Sistema de proxy interno para manejar autenticación y fallbacks automáticos para el catálogo de servicios.
+- **Notificaciones**: Confirmaciones por email automáticas vía Resend.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS v4
+- **Iconografía**: Lucide React
+- **Animaciones**: Framer Motion
+- **Email**: Resend
+- **API**: Volkern CRM
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ⚙️ Configuración (Vercel / Local)
 
-## Learn More
+Para desplegar la aplicación, utiliza las siguientes variables de entorno:
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Descripción |
+| :--- | :--- |
+| `VOLKERN_API_KEY` | Tu API Key de Volkern. |
+| `VOLKERN_BASE_URL` | `https://volkern.app/api` |
+| `RESEND_API_KEY` | API Key de Resend para notificaciones por email. |
+| `CONSULTANT_EMAIL` | Email del consultor que recibe las notificaciones. |
+| `NEXT_PUBLIC_APP_URL` | URL base de la aplicación (producción). |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📦 Instalación Local
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Clonar el repositorio.
+2. Crear un archivo `.env.local` con las variables mencionadas.
+3. Instalar dependencias: `npm install`
+4. Ejecutar en desarrollo: `npm run dev`
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Desarrollado con ❤️ por **Antigravity** para **DeXpertmx**.
