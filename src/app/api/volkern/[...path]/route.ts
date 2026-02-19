@@ -18,21 +18,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path: string[] }>) {
     try {
         const { path: pathSegments } = await paramsPromise;
-        const path = pathSegments.join('/');
         const searchParams = request.nextUrl.searchParams.toString();
-        const url = `${BASE_URL}/${path}${searchParams ? `?${searchParams}` : ''}`;
+
+        let cleanApiKey = (API_KEY || '').trim();
+        // Remove quotes and non-printable characters or weird encoding
+        cleanApiKey = cleanApiKey.replace(/^["']|["']$/g, '').trim();
+
+        // Final aggressive clean: Volkern keys are vk_prod_ followed by alphanumeric. 
+        // If there are leading/trailing spaces or hidden chars (\r, \n) after trim, this hits them.
+        cleanApiKey = cleanApiKey.replace(/[^a-zA-Z0-9_-]/g, '');
+
+        // Robust URL building
+        const baseUrlClean = BASE_URL.replace(/\/$/, '');
+        const pathClean = pathSegments.join('/').replace(/^\//, '');
+        const url = `${baseUrlClean}/${pathClean}${searchParams ? `?${searchParams}` : ''}`;
 
         console.log(`[Proxy] ${request.method} -> ${url}`);
 
-        let cleanApiKey = API_KEY || '';
-        // Remove quotes if present (sometimes happens in shell/Docker envs)
-        if (cleanApiKey.startsWith('"') && cleanApiKey.endsWith('"')) {
-            cleanApiKey = cleanApiKey.substring(1, cleanApiKey.length - 1);
-        }
-        if (cleanApiKey.startsWith("'") && cleanApiKey.endsWith("'")) {
-            cleanApiKey = cleanApiKey.substring(1, cleanApiKey.length - 1);
-        }
-        cleanApiKey = cleanApiKey.trim();
 
         console.log(`[Proxy] Method: ${request.method} | URL: ${url}`);
         console.log(`[Proxy] API Key check - Length: ${cleanApiKey.length} | Starts with: ${cleanApiKey.substring(0, 10)}...`);
@@ -81,7 +83,7 @@ async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path
             data = await response.json();
 
             // LOG DATA STRUCTURE FOR DEBUGGING (if services list)
-            if (path.includes('servicios') && request.method === 'GET') {
+            if (pathClean.includes('servicios') && request.method === 'GET') {
                 console.log('[Proxy Debug] Services response keys:', Object.keys(data));
             }
         } else {

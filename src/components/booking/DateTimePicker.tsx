@@ -105,7 +105,7 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
 
                     {error ? (
                         <div className="p-8 text-center glass rounded-2xl border-red-200">
-                            <p className="text-red-500 font-medium">Error de conexión (v1.2.1)</p>
+                            <p className="text-red-500 font-medium">Error de conexión (v1.2.2)</p>
                             <p className="text-slate-500 text-xs mt-1 mb-4">
                                 Detalle: {error}
                             </p>
