@@ -38,7 +38,7 @@ export default function BookingPage() {
       const lead = await VolkernClient.upsertLead({
         ...data,
         canal: 'web',
-        contextoProyecto: `Cita agendada para: ${selectedService.nombre}`
+        // contextoProyecto removed to keep lead clean as per user request
       });
 
       if (!lead.id) throw new Error("Could not result lead ID from CRM");
@@ -64,7 +64,7 @@ export default function BookingPage() {
       setStep(4);
     } catch (error: any) {
       console.error("Booking process failed:", error);
-      alert(`Error al procesar reserva (v1.2.4): ${error.message || "Error desconocido"}`);
+      alert(`Error al procesar reserva (v1.2.5): ${error.message || "Error desconocido"}`);
     } finally {
       setIsSubmitting(false);
     }
