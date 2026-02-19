@@ -48,8 +48,9 @@ async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path
         if (request.method !== 'GET' && request.method !== 'HEAD') {
             try {
                 body = await request.json();
+                console.log('[Proxy] Request Body:', JSON.stringify(body, null, 2));
             } catch (e) {
-                // Body might be empty or not JSON
+                console.warn('[Proxy] Failed to parse request body or body is empty');
             }
         }
 

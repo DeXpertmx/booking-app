@@ -62,9 +62,9 @@ export default function BookingPage() {
       }).catch(err => console.error("Email sending failed:", err));
 
       setStep(4);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Booking process failed:", error);
-      alert("Lo sentimos, hubo un problema al procesar tu reserva. Por favor intenta de nuevo.");
+      alert(`Error al procesar reserva (v1.2.3): ${error.message || "Error desconocido"}`);
     } finally {
       setIsSubmitting(false);
     }
