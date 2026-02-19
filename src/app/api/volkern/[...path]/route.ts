@@ -24,13 +24,23 @@ async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path
 
         console.log(`[Proxy] ${request.method} -> ${url}`);
 
-        if (!API_KEY) {
-            console.error('[Proxy Error] VOLKERN_API_KEY is not defined in environment variables');
-            return NextResponse.json({ error: 'Server Configuration Error: Missing API Key' }, { status: 500 });
+        let cleanApiKey = API_KEY || '';
+        // Remove quotes if present (sometimes happens in shell/Docker envs)
+        if (cleanApiKey.startsWith('"') && cleanApiKey.endsWith('"')) {
+            cleanApiKey = cleanApiKey.substring(1, cleanApiKey.length - 1);
         }
+        if (cleanApiKey.startsWith("'") && cleanApiKey.endsWith("'")) {
+            cleanApiKey = cleanApiKey.substring(1, cleanApiKey.length - 1);
+        }
+        cleanApiKey = cleanApiKey.trim();
 
         console.log(`[Proxy] Method: ${request.method} | URL: ${url}`);
-        console.log(`[Proxy] API Key present: ${!!API_KEY} (Starts with: ${API_KEY.substring(0, 8)}...)`);
+        console.log(`[Proxy] API Key check - Length: ${cleanApiKey.length} | Starts with: ${cleanApiKey.substring(0, 10)}...`);
+
+        if (!cleanApiKey) {
+            console.error('[Proxy Error] VOLKERN_API_KEY is not defined or is empty after cleaning');
+            return NextResponse.json({ error: 'Server Configuration Error: Missing or Malformed API Key' }, { status: 500 });
+        }
 
         let body;
         if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -45,7 +55,7 @@ async function handleRequest(request: NextRequest, paramsPromise: Promise<{ path
         const response = await fetch(url, {
             method: request.method,
             headers: {
-                'X-API-Key': API_KEY,
+                'X-API-Key': cleanApiKey,
                 'Content-Type': 'application/json',
             },
             body: body ? JSON.stringify(body) : undefined,
