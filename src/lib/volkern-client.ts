@@ -73,7 +73,33 @@ export class VolkernClient {
         return this.request<AvailabilityResponse>(`/citas/disponibilidad?fecha=${fecha}&duracion=${duracion}&timezone=Europe/Madrid`);
     }
 
+    static async getLeadByEmail(email: string): Promise<Lead | null> {
+        try {
+            // Search returns an array of leads directly
+            const leads = await this.request<Lead[]>(`/leads?query=${encodeURIComponent(email)}`);
+            if (Array.isArray(leads) && leads.length > 0) {
+                return leads[0];
+            }
+            return null;
+        } catch (error) {
+            console.warn('[VolkernClient] Error searching lead:', error);
+            return null;
+        }
+    }
+
     static async upsertLead(leadData: Lead): Promise<Lead> {
+        // 1. Check if lead exists
+        const existingLead = await this.getLeadByEmail(leadData.email);
+
+        if (existingLead && existingLead.id) {
+            console.log(`[VolkernClient] Lead exists (${existingLead.id}), skipping creation.`);
+            // Optionally update context here if API supports PATCH /leads/:id
+            // For now, return existing to proceed with booking
+            return existingLead;
+        }
+
+        // 2. Create if not exists
+        console.log(`[VolkernClient] Lead not found, creating new lead for ${leadData.email}`);
         return this.request<Lead>('/leads', {
             method: 'POST',
             body: JSON.stringify(leadData),

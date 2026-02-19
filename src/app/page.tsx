@@ -64,7 +64,7 @@ export default function BookingPage() {
       setStep(4);
     } catch (error: any) {
       console.error("Booking process failed:", error);
-      alert(`Error al procesar reserva (v1.2.3): ${error.message || "Error desconocido"}`);
+      alert(`Error al procesar reserva (v1.2.4): ${error.message || "Error desconocido"}`);
     } finally {
       setIsSubmitting(false);
     }
