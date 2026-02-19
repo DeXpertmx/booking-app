@@ -27,8 +27,9 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
     useEffect(() => {
         setLoading(true);
         setError(null);
-        console.log(`[DateTimePicker] Fetching availability for ${selectedDate}, duration ${service.duracionMinutos}`);
-        VolkernClient.getAvailability(selectedDate, service.duracionMinutos)
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        console.log(`[DateTimePicker] Fetching availability for ${selectedDate}, duration ${service.duracionMinutos}, tz ${timezone}`);
+        VolkernClient.getAvailability(selectedDate, service.duracionMinutos, timezone)
             .then((data) => {
                 console.log("[DateTimePicker] Availability data received:", data);
                 setAvailability(data);
