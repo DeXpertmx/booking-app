@@ -100,10 +100,16 @@ export class VolkernClient {
 
         // 2. Create if not exists
         console.log(`[VolkernClient] Lead not found, creating new lead for ${leadData.email}`);
-        return this.request<Lead>('/leads', {
+        const response = await this.request<any>('/leads', {
             method: 'POST',
             body: JSON.stringify(leadData),
         });
+
+        // Handle nested response from create endpoint { success: true, lead: { ... } }
+        if (response && response.lead) {
+            return response.lead;
+        }
+        return response;
     }
 
     static async createAppointment(appointmentData: Appointment): Promise<Appointment> {
