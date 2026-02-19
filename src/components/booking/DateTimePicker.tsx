@@ -35,7 +35,7 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
             })
             .catch((err) => {
                 console.error("[DateTimePicker] Error fetching availability:", err);
-                setError("No se pudo cargar la disponibilidad.");
+                setError(err.message || "Error desconocido al cargar disponibilidad");
             })
             .finally(() => setLoading(false));
     }, [selectedDate, service.duracionMinutos]);
