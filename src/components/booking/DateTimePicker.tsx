@@ -128,22 +128,31 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
                         </div>
                     ) : (
                         <div className="grid grid-cols-3 gap-2">
-                            {availability?.disponibles?.slots?.map((slot) => {
-                                const time = new Date(slot).toLocaleTimeString('es', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: false
-                                });
-                                return (
-                                    <button
-                                        key={slot}
-                                        onClick={() => onSelect(slot)}
-                                        className="p-3 text-sm font-semibold rounded-xl border border-slate-200 hover:border-primary hover:text-primary transition-all bg-white"
-                                    >
-                                        {time}
-                                    </button>
-                                );
-                            })}
+                            {availability?.disponibles?.slots
+                                ?.filter(slot => new Date(slot) > new Date()) // Filter past slots
+                                .map((slot) => {
+                                    const time = new Date(slot).toLocaleTimeString('es', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: false
+                                    });
+                                    return (
+                                        <button
+                                            key={slot}
+                                            onClick={() => onSelect(slot)}
+                                            className="p-3 text-sm font-semibold rounded-xl border border-slate-200 hover:border-primary hover:text-primary transition-all bg-white"
+                                        >
+                                            {time}
+                                        </button>
+                                    );
+                                })}
+                            {/* Show message if all slots were filtered out */}
+                            {availability?.disponibles?.slots &&
+                                availability.disponibles.slots.filter(slot => new Date(slot) > new Date()).length === 0 && (
+                                    <div className="col-span-3 p-4 text-center text-slate-400 text-sm">
+                                        No hay mas horarios hoy.
+                                    </div>
+                                )}
                         </div>
                     )}
                 </div>
