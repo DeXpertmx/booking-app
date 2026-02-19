@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { VolkernClient } from "@/lib/volkern-client";
 import { Service, AvailabilityResponse } from "@/types/volkern";
+import { parseSlotInTenantTimezone } from "@/lib/time-utils";
 import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
@@ -27,9 +28,10 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
     useEffect(() => {
         setLoading(true);
         setError(null);
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        console.log(`[DateTimePicker] Fetching availability for ${selectedDate}, duration ${service.duracionMinutos}, tz ${timezone}`);
-        VolkernClient.getAvailability(selectedDate, service.duracionMinutos, timezone)
+        // Reverted to standard call without checking browser timezone for the API request
+        // We handle timezone interpretation on the client side using NEXT_PUBLIC_TENANT_TIMEZONE
+        console.log(`[DateTimePicker] Fetching availability for ${selectedDate}, duration ${service.duracionMinutos}`);
+        VolkernClient.getAvailability(selectedDate, service.duracionMinutos)
             .then((data) => {
                 console.log("[DateTimePicker] Availability data received:", data);
                 setAvailability(data);
@@ -130,17 +132,26 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
                     ) : (
                         <div className="grid grid-cols-3 gap-2">
                             {availability?.disponibles?.slots
-                                ?.filter(slot => new Date(slot) > new Date()) // Filter past slots
-                                .map((slot) => {
-                                    const time = new Date(slot).toLocaleTimeString('es', {
+                                ?.map(slot => {
+                                    // Parse the API slot (floating) as Tenant Timezone
+                                    const tenantTz = process.env.NEXT_PUBLIC_TENANT_TIMEZONE || 'Europe/Madrid';
+                                    return {
+                                        original: slot,
+                                        dateObj: parseSlotInTenantTimezone(slot, tenantTz)
+                                    };
+                                })
+                                .filter(item => item.dateObj > new Date()) // Filter past slots (User Local Time comparison)
+                                .map((item, index) => {
+                                    // Display in User Local Time
+                                    const time = item.dateObj.toLocaleTimeString('es', {
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         hour12: false
                                     });
                                     return (
                                         <button
-                                            key={slot}
-                                            onClick={() => onSelect(slot)}
+                                            key={item.original}
+                                            onClick={() => onSelect(item.original)}
                                             className="p-3 text-sm font-semibold rounded-xl border border-slate-200 hover:border-primary hover:text-primary transition-all bg-white"
                                         >
                                             {time}
@@ -149,9 +160,11 @@ export default function DateTimePicker({ service, onSelect, onBack }: DateTimePi
                                 })}
                             {/* Show message if all slots were filtered out */}
                             {availability?.disponibles?.slots &&
-                                availability.disponibles.slots.filter(slot => new Date(slot) > new Date()).length === 0 && (
+                                availability.disponibles.slots
+                                    .map(slot => parseSlotInTenantTimezone(slot, process.env.NEXT_PUBLIC_TENANT_TIMEZONE || 'Europe/Madrid'))
+                                    .filter(d => d > new Date()).length === 0 && (
                                     <div className="col-span-3 p-4 text-center text-slate-400 text-sm">
-                                        No hay mas horarios hoy.
+                                        No hay más horarios hoy.
                                     </div>
                                 )}
                         </div>
