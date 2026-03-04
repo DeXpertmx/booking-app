@@ -8,11 +8,20 @@ export class EmailService {
     serviceName: string;
     dateTime: string;
     duration: number;
+    leadId: string;
   }) {
     if (!resend) {
       console.warn("Resend API Key is missing. Email confirmation skipped.");
       return Promise.resolve();
     }
+
+    const timeZone = process.env.NEXT_PUBLIC_TENANT_TIMEZONE || 'Europe/Madrid';
+    const formattedDateTime = new Intl.DateTimeFormat('es-MX', {
+      dateStyle: 'full',
+      timeStyle: 'short',
+      timeZone: timeZone
+    }).format(new Date(appointmentDetails.dateTime));
+
     // Send to Client
     const clientPromise = resend.emails.send({
       from: 'Volkern <appointments@dimensionexpert.com>',
@@ -24,7 +33,7 @@ export class EmailService {
           <p>Hemos agendado tu sesión exitosamente. Aquí están los detalles:</p>
           <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p><strong>Servicio:</strong> ${appointmentDetails.serviceName}</p>
-            <p><strong>Fecha y Hora:</strong> ${new Date(appointmentDetails.dateTime).toLocaleString()}</p>
+            <p><strong>Fecha y Hora:</strong> ${formattedDateTime}</p>
             <p><strong>Duración:</strong> ${appointmentDetails.duration} minutos</p>
           </div>
           <p>Te esperamos pronto.</p>
@@ -44,9 +53,9 @@ export class EmailService {
           <h2>Nueva cita agendada en el calendario</h2>
           <p><strong>Cliente:</strong> ${clientName} (${clientEmail})</p>
           <p><strong>Servicio:</strong> ${appointmentDetails.serviceName}</p>
-          <p><strong>Fecha y Hora:</strong> ${new Date(appointmentDetails.dateTime).toLocaleString()}</p>
+          <p><strong>Fecha y Hora:</strong> ${formattedDateTime}</p>
           <hr />
-          <p><a href="${process.env.NEXT_PUBLIC_VOLKERN_URL || 'https://volkern.app'}" style="color: black; text-decoration: underline;">Ver en Volkern CRM</a></p>
+          <p><a href="${process.env.NEXT_PUBLIC_VOLKERN_URL || 'https://volkern.app'}/dashboard/leads/${appointmentDetails.leadId}" style="color: black; text-decoration: underline;">Ver Lead en Volkern</a></p>
         </div>
       `,
     });

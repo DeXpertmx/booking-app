@@ -8,6 +8,7 @@ import SuccessScreen from "@/components/booking/SuccessScreen";
 import { Service, Lead, Appointment } from "@/types/volkern";
 import { VolkernClient } from "@/lib/volkern-client";
 import { EmailService } from "@/lib/email-service";
+import { parseSlotInTenantTimezone } from "@/lib/time-utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function BookingPage() {
@@ -44,9 +45,12 @@ export default function BookingPage() {
       if (!lead.id) throw new Error("Could not result lead ID from CRM");
 
       // 2. Create Appointment in Volkern
+      const tenantTz = process.env.NEXT_PUBLIC_TENANT_TIMEZONE || 'Europe/Madrid';
+      const parsedIsoDate = parseSlotInTenantTimezone(selectedDateTime, tenantTz).toISOString();
+
       await VolkernClient.createAppointment({
         leadId: lead.id,
-        fechaHora: selectedDateTime,
+        fechaHora: parsedIsoDate,
         tipo: 'reunion',
         titulo: `Cita: ${selectedService.nombre} - ${data.nombre}`,
         descripcion: data.notas,
@@ -57,8 +61,9 @@ export default function BookingPage() {
       // 3. Send Emails (Fire and forget or wait depends on preference, here we wait)
       await EmailService.sendBookingConfirmation(data.email, data.nombre, {
         serviceName: selectedService.nombre,
-        dateTime: selectedDateTime,
-        duration: selectedService.duracionMinutos
+        dateTime: parsedIsoDate,
+        duration: selectedService.duracionMinutos,
+        leadId: lead.id
       }).catch(err => console.error("Email sending failed:", err));
 
       setStep(4);
