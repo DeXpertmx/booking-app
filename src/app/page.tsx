@@ -17,6 +17,7 @@ export default function BookingPage() {
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
   const [clientData, setClientData] = useState<Lead | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmedDateTime, setConfirmedDateTime] = useState<string | null>(null);
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
@@ -66,6 +67,7 @@ export default function BookingPage() {
         leadId: lead.id
       }).catch(err => console.error("Email sending failed:", err));
 
+      setConfirmedDateTime(parsedIsoDate);
       setStep(4);
     } catch (error: any) {
       console.error("Booking process failed:", error);
@@ -167,7 +169,7 @@ export default function BookingPage() {
             <SuccessScreen
               clientName={clientData.nombre}
               serviceName={selectedService.nombre}
-              dateTime={selectedDateTime}
+              dateTime={confirmedDateTime || selectedDateTime}
             />
           </motion.div>
         )}

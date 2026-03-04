@@ -10,13 +10,15 @@ interface SuccessScreenProps {
 }
 
 export default function SuccessScreen({ clientName, serviceName, dateTime }: SuccessScreenProps) {
-    const formattedDate = new Date(dateTime).toLocaleString('es', {
+    const timeZone = process.env.NEXT_PUBLIC_TENANT_TIMEZONE || 'Europe/Madrid';
+    const formattedDate = new Intl.DateTimeFormat('es-MX', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
         hour: '2-digit',
-        minute: '2-digit'
-    });
+        minute: '2-digit',
+        timeZone: timeZone
+    }).format(new Date(dateTime));
 
     return (
         <div className="flex flex-col items-center justify-center text-center py-10 space-y-8 animate-fade-in">
