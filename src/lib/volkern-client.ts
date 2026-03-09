@@ -1,7 +1,6 @@
-import { Service, AvailabilityResponse, Lead, Appointment } from '../types/volkern';
+import { Service, AvailabilityResponse, Lead, Appointment, Interaction, LeadNote } from '../types/volkern';
 
 const BASE_URL = '/api/volkern';
-// No need for API_KEY here as the proxy handles it server-side
 
 export class VolkernClient {
     private static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -24,13 +23,27 @@ export class VolkernClient {
 
     static async getServices(): Promise<Service[]> {
         try {
-            const data = await this.request<any>('/servicios?activo=true');
-            if (Array.isArray(data)) return data;
-            if (data && typeof data === 'object' && 'services' in data && Array.isArray(data.services)) {
-                return data.services;
+            // Updated to use the new catalog endpoint
+            const data = await this.request<any>('/catalogo?tipo=servicio&activo=true');
+
+            let services: any[] = [];
+            if (Array.isArray(data)) {
+                services = data;
+            } else if (data && typeof data === 'object' && 'items' in data && Array.isArray(data.items)) {
+                services = data.items;
+            } else if (data && typeof data === 'object' && 'services' in data && Array.isArray(data.services)) {
+                services = data.services;
             }
-            // If it's not a valid format but we got a response (like the proxy's 401 JSON)
-            // we catch it below if request() throws, or handle it here if it doesn't.
+
+            if (services.length > 0) {
+                // Map precioBase to precio for backward compatibility if needed, 
+                // or ensure the UI uses the right field.
+                return services.map(item => ({
+                    ...item,
+                    precio: item.precio ?? item.precioBase ?? 0
+                }));
+            }
+
             return this.getFallbackServices();
         } catch (error) {
             console.warn('[VolkernClient] getServices failed, using fallback services:', error);
@@ -42,26 +55,28 @@ export class VolkernClient {
         return [
             {
                 id: "cmkbrkzn30005rx089kx50b9f",
-                tenantId: "cmhmjkvra0000p99kz0pjz7k5",
                 nombre: "Sesión de Conocimiento / Neting",
                 descripcion: "Sesión estratégica inicial para conocer tu proyecto y determinar los próximos pasos en tu viaje de automatización.",
                 duracionMinutos: 30,
+                precioBase: 0,
                 precio: 0,
                 moneda: "MXN",
                 modalidad: "virtual",
+                tipo: "servicio",
                 activo: true,
                 fechaCreacion: new Date().toISOString(),
                 fechaActualizacion: new Date().toISOString()
             },
             {
                 id: "consultoria-expert",
-                tenantId: "cmhmjkvra0000p99kz0pjz7k5",
                 nombre: "Consultoría de Automatización de Ventas",
                 descripcion: "Análisis completo de funnel de ventas y diseño de flujos de seguimiento automáticos.",
                 duracionMinutos: 45,
+                precioBase: 0,
                 precio: 0,
                 moneda: "EUR",
                 modalidad: "presencial",
+                tipo: "servicio",
                 activo: true,
                 fechaCreacion: new Date().toISOString(),
                 fechaActualizacion: new Date().toISOString()
@@ -75,16 +90,16 @@ export class VolkernClient {
 
     static async getLeadByEmail(email: string): Promise<Lead | null> {
         try {
-            // Search returns an array of leads directly
-            const leads = await this.request<Lead[]>(`/leads?query=${encodeURIComponent(email)}`);
+            // Search via query parameter
+            const response = await this.request<any>(`/leads?search=${encodeURIComponent(email)}`);
+            const leads = Array.isArray(response) ? response : (response.leads || []);
+
             if (Array.isArray(leads) && leads.length > 0) {
-                // IMPORTANT: The API performs a fuzzy search. We MUST filter by exact email match.
-                const exactMatch = leads.find(l => l.email.toLowerCase() === email.toLowerCase());
+                const exactMatch = leads.find((l: Lead) => l.email.toLowerCase() === email.toLowerCase());
                 if (exactMatch) {
                     console.log(`[VolkernClient] Found exact match for ${email}: ${exactMatch.id}`);
                     return exactMatch;
                 }
-                console.log(`[VolkernClient] No exact match found for ${email} in ${leads.length} results.`);
             }
             return null;
         } catch (error) {
@@ -94,34 +109,45 @@ export class VolkernClient {
     }
 
     static async upsertLead(leadData: Lead): Promise<Lead> {
-        // 1. Check if lead exists
         const existingLead = await this.getLeadByEmail(leadData.email);
 
         if (existingLead && existingLead.id) {
-            console.log(`[VolkernClient] Lead exists (${existingLead.id}), skipping creation.`);
-            // Optionally update context here if API supports PATCH /leads/:id
-            // For now, return existing to proceed with booking
-            return existingLead;
+            console.log(`[VolkernClient] Lead exists (${existingLead.id}), updating...`);
+            return this.request<Lead>(`/leads/${existingLead.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(leadData),
+            });
         }
 
-        // 2. Create if not exists
         console.log(`[VolkernClient] Lead not found, creating new lead for ${leadData.email}`);
         const response = await this.request<any>('/leads', {
             method: 'POST',
             body: JSON.stringify(leadData),
         });
 
-        // Handle nested response from create endpoint { success: true, lead: { ... } }
-        if (response && response.lead) {
-            return response.lead;
-        }
-        return response;
+        return response.lead || response;
     }
 
     static async createAppointment(appointmentData: Appointment): Promise<Appointment> {
         return this.request<Appointment>('/citas', {
             method: 'POST',
             body: JSON.stringify(appointmentData),
+        });
+    }
+
+    static async createInteraction(interactionData: Interaction): Promise<any> {
+        const { leadId, ...data } = interactionData;
+        return this.request(`/leads/${leadId}/interactions`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    static async createNote(noteData: LeadNote): Promise<any> {
+        const { leadId, ...data } = noteData;
+        return this.request(`/leads/${leadId}/notes`, {
+            method: 'POST',
+            body: JSON.stringify(data),
         });
     }
 }

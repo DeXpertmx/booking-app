@@ -1,15 +1,25 @@
-export interface Service {
+export interface CatalogItem {
     id: string;
-    tenantId: string;
     nombre: string;
-    descripcion: string;
-    duracionMinutos: number;
-    precio: number;
+    descripcion?: string;
+    sku?: string;
+    tipo: 'producto' | 'servicio' | 'cita' | 'academia';
+    precioBase: number;
     moneda: string;
-    modalidad: 'presencial' | 'virtual' | 'hibrido';
+    duracionMinutos?: number;
+    modalidad?: 'presencial' | 'virtual' | 'hibrido';
     activo: boolean;
-    fechaCreacion: string;
-    fechaActualizacion: string;
+    categoriaFiscal?: string;
+    categorias?: string[];
+    etiquetas?: string[];
+    metadata?: Record<string, any>;
+}
+
+export interface Service extends CatalogItem {
+    tenantId?: string;
+    precio?: number; // Added for backward compatibility with UI
+    fechaCreacion?: string;
+    fechaActualizacion?: string;
 }
 
 export interface AvailabilitySlot {
@@ -45,6 +55,7 @@ export interface Lead {
     estado?: string;
     notas?: string;
     contextoProyecto?: string;
+    etiquetas?: string[];
 }
 
 export interface Appointment {
@@ -57,4 +68,22 @@ export interface Appointment {
     duracion: number;
     servicioId?: string;
     estado?: string;
+}
+
+export interface Interaction {
+    id?: string;
+    leadId: string;
+    tipo: 'llamada' | 'email' | 'whatsapp' | 'reunion' | 'nota' | 'otro';
+    contenido: string;
+    resultado?: 'positivo' | 'neutro' | 'negativo';
+    metadatos?: Record<string, any>;
+    fechaCreacion?: string;
+}
+
+export interface LeadNote {
+    id?: string;
+    leadId: string;
+    contenido: string;
+    titulo?: string;
+    fechaCreacion?: string;
 }

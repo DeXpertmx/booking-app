@@ -55,15 +55,27 @@ export default function BookingPage() {
         tipo: 'reunion',
         titulo: `Cita: ${selectedService.nombre} - ${data.nombre}`,
         descripcion: data.notas,
-        duracion: selectedService.duracionMinutos,
+        duracion: selectedService.duracionMinutos || 60,
         servicioId: selectedService.id
       });
 
-      // 3. Send Emails (Fire and forget or wait depends on preference, here we wait)
+      // 3. Log Interaction in Volkern for traceability
+      await VolkernClient.createInteraction({
+        leadId: lead.id!,
+        tipo: 'reunion',
+        contenido: `Reserva web confirmada: ${selectedService.nombre} para el ${selectedDateTime}.`,
+        resultado: 'positivo',
+        metadatos: {
+          serviceId: selectedService.id,
+          source: 'booking-app'
+        }
+      }).catch(err => console.warn("Interaction logging failed:", err));
+
+      // 4. Send Emails
       await EmailService.sendBookingConfirmation(data.email, data.nombre, {
         serviceName: selectedService.nombre,
         dateTime: parsedIsoDate,
-        duration: selectedService.duracionMinutos,
+        duration: selectedService.duracionMinutos || 60,
         leadId: lead.id
       }).catch(err => console.error("Email sending failed:", err));
 
