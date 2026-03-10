@@ -87,3 +87,72 @@ export interface LeadNote {
     titulo?: string;
     fechaCreacion?: string;
 }
+
+export interface Deal {
+    id?: string;
+    titulo: string;
+    valor?: number;
+    moneda?: string;
+    etapa?: string;
+    prioridad?: 'baja' | 'media' | 'alta';
+    probabilidad?: number;
+    fechaEstimadaCierre?: string;
+    leadId?: string;
+    contactId?: string;
+    companyId?: string;
+    descripcion?: string;
+    estado?: 'abierto' | 'ganado' | 'perdido';
+}
+
+export interface QuoteItem {
+    id?: string;
+    concepto: string;
+    cantidad: number;
+    precioUnitario: number;
+    descuento?: number;
+    tasaImpuestoId?: string;
+}
+
+export interface Quote {
+    id?: string;
+    numero?: string;
+    estado?: 'borrador' | 'enviada' | 'aceptada' | 'rechazada' | 'expirada';
+    leadId?: string;
+    dealId?: string;
+    validezDias?: number;
+    notas?: string;
+    items: QuoteItem[];
+    subtotal?: number;
+    iva?: number;
+    total?: number;
+    urlPublica?: string;
+}
+
+export interface Contract {
+    id?: string;
+    numero?: string;
+    titulo: string;
+    tipo?: 'servicios' | 'productos' | 'suscripcion' | 'proyecto' | 'otro';
+    estado?: 'borrador' | 'enviado' | 'firmado_cliente' | 'firmado_empresa' | 'activo' | 'completado' | 'cancelado';
+    leadId?: string;
+    dealId?: string;
+    cotizacionId?: string;
+    fechaInicio?: string;
+    fechaFin?: string;
+    metodoPago?: 'unico' | 'mensual' | 'trimestral' | 'anual';
+    total?: number;
+    urlPublica?: string;
+}
+
+export interface SalesForecast {
+    basicForecast: { total: number; ponderado: number };
+    adjustedForecast: { total: number; confianza: number };
+    cycleTime: { promedioDias: number };
+}
+
+export interface PipelineStage {
+    id: string;
+    nombre: string;
+    probabilidad: number;
+    orden: number;
+}

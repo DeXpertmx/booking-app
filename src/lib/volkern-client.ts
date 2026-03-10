@@ -1,4 +1,4 @@
-import { Service, AvailabilityResponse, Lead, Appointment, Interaction, LeadNote } from '../types/volkern';
+import { Service, AvailabilityResponse, Lead, Appointment, Interaction, LeadNote, Deal, PipelineStage, SalesForecast, Quote, Contract } from '../types/volkern';
 
 const BASE_URL = '/api/volkern';
 
@@ -21,6 +21,7 @@ export class VolkernClient {
         return response.json();
     }
 
+    // === Catalog & Services ===
     static async getServices(): Promise<Service[]> {
         try {
             // Updated to use the new catalog endpoint
@@ -36,8 +37,7 @@ export class VolkernClient {
             }
 
             if (services.length > 0) {
-                // Map precioBase to precio for backward compatibility if needed, 
-                // or ensure the UI uses the right field.
+                // Map precioBase to precio for backward compatibility if needed
                 return services.map(item => ({
                     ...item,
                     precio: item.precio ?? item.precioBase ?? 0
@@ -63,31 +63,24 @@ export class VolkernClient {
                 moneda: "MXN",
                 modalidad: "virtual",
                 tipo: "servicio",
-                activo: true,
-                fechaCreacion: new Date().toISOString(),
-                fechaActualizacion: new Date().toISOString()
-            },
-            {
-                id: "consultoria-expert",
-                nombre: "Consultoría de Automatización de Ventas",
-                descripcion: "Análisis completo de funnel de ventas y diseño de flujos de seguimiento automáticos.",
-                duracionMinutos: 45,
-                precioBase: 0,
-                precio: 0,
-                moneda: "EUR",
-                modalidad: "presencial",
-                tipo: "servicio",
-                activo: true,
-                fechaCreacion: new Date().toISOString(),
-                fechaActualizacion: new Date().toISOString()
+                activo: true
             }
         ];
     }
 
+    // === Appointments ===
     static async getAvailability(fecha: string, duracion: number = 60, timezone: string = 'UTC'): Promise<AvailabilityResponse> {
         return this.request<AvailabilityResponse>(`/citas/disponibilidad?fecha=${fecha}&duracion=${duracion}&timezone=${timezone}`);
     }
 
+    static async createAppointment(appointmentData: Appointment): Promise<Appointment> {
+        return this.request<Appointment>('/citas', {
+            method: 'POST',
+            body: JSON.stringify(appointmentData),
+        });
+    }
+
+    // === Leads ===
     static async getLeadByEmail(email: string): Promise<Lead | null> {
         try {
             // Search via query parameter
@@ -128,13 +121,59 @@ export class VolkernClient {
         return response.lead || response;
     }
 
-    static async createAppointment(appointmentData: Appointment): Promise<Appointment> {
-        return this.request<Appointment>('/citas', {
+    // === Pipeline & Deals ===
+    static async getPipelineStages(): Promise<PipelineStage[]> {
+        return this.request<PipelineStage[]>('/pipeline/stages');
+    }
+
+    static async getDeals(filters: any = {}): Promise<Deal[]> {
+        const params = new URLSearchParams(filters).toString();
+        const response = await this.request<any>(`/deals${params ? `?${params}` : ''}`);
+        return response.deals || response;
+    }
+
+    static async createDeal(dealData: Deal): Promise<Deal> {
+        return this.request<Deal>('/deals', {
             method: 'POST',
-            body: JSON.stringify(appointmentData),
+            body: JSON.stringify(dealData),
         });
     }
 
+    static async getSalesForecast(periodo: 'mes' | 'trimestre' | 'año' = 'mes'): Promise<SalesForecast> {
+        return this.request<SalesForecast>(`/deals/forecast?periodo=${periodo}`);
+    }
+
+    // === Quotes & Cotizaciones ===
+    static async createQuote(quoteData: Quote): Promise<Quote> {
+        return this.request<Quote>('/cotizaciones', {
+            method: 'POST',
+            body: JSON.stringify(quoteData),
+        });
+    }
+
+    static async sendQuote(quoteId: string, mensaje?: string): Promise<any> {
+        return this.request(`/cotizaciones/${quoteId}/send`, {
+            method: 'POST',
+            body: JSON.stringify({ mensaje }),
+        });
+    }
+
+    // === Contracts ===
+    static async createContract(contractData: Contract): Promise<Contract> {
+        return this.request<Contract>('/contratos', {
+            method: 'POST',
+            body: JSON.stringify(contractData),
+        });
+    }
+
+    static async createContractFromQuote(quoteId: string, data: any = {}): Promise<Contract> {
+        return this.request<Contract>(`/contratos/from-cotizacion/${quoteId}`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    // === Interactions & Notes ===
     static async createInteraction(interactionData: Interaction): Promise<any> {
         const { leadId, ...data } = interactionData;
         return this.request(`/leads/${leadId}/interactions`, {
