@@ -34,7 +34,7 @@ export default function SuccessScreen({ clientName, serviceName, dateTime }: Suc
 
             <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">¡Cita agendada con éxito!</h2>
-                <p className="text-slate-500 text-lg">Gracias ${clientName}, tu sesión para ${serviceName} ha sido reservada.</p>
+                <p className="text-slate-500 text-lg">Gracias {clientName}, tu sesión para {serviceName} ha sido reservada.</p>
             </div>
 
             <div className="glass p-8 rounded-3xl w-full max-w-sm space-y-4">
