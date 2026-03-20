@@ -236,177 +236,10 @@ const tools: Tool[] = [
     }
   },
 
-  // === CATALOG (ENHANCED) ===
-  {
-    name: "volkern_list_catalogo",
-    description: "List catalog items (products, services, appointments, courses) with advanced filters",
-    inputSchema: {
-      type: "object",
-      properties: {
-        tipo: { 
-          type: "string", 
-          enum: ["producto", "servicio", "cita", "academia"],
-          description: "Filter by item type" 
-        },
-        activo: { type: "boolean", description: "Filter only active items (default: true)" },
-        categoria: { type: "string", description: "Filter by category name" },
-        etiqueta: { type: "string", description: "Filter by tag" },
-        search: { type: "string", description: "Search by name, description or SKU" },
-        page: { type: "number", description: "Page number (default: 1)" },
-        limit: { type: "number", description: "Results per page (default: 50)" }
-      }
-    }
-  },
-  {
-    name: "volkern_get_catalogo_item",
-    description: "Get detailed information about a specific catalog item including custom fields, pricing, and media",
-    inputSchema: {
-      type: "object",
-      properties: {
-        itemId: { type: "string", description: "The catalog item's unique ID" }
-      },
-      required: ["itemId"]
-    }
-  },
-  {
-    name: "volkern_create_catalogo_item",
-    description: "Create a new catalog item with full support for custom fields, categories, tags, media, and flexible pricing",
-    inputSchema: {
-      type: "object",
-      properties: {
-        nombre: { type: "string", description: "Item name (required)" },
-        descripcion: { type: "string", description: "Detailed description" },
-        sku: { type: "string", description: "Internal SKU/code" },
-        tipo: { 
-          type: "string", 
-          enum: ["producto", "servicio", "cita", "academia"],
-          description: "Item type (default: servicio)" 
-        },
-        precioBase: { type: "number", description: "Base price (required)" },
-        moneda: { type: "string", description: "Currency code (EUR, USD, MXN, GBP)" },
-        categoriaFiscal: { type: "string", enum: ["general", "reducido", "superreducido", "exento"] },
-        tasaImpuestoId: { type: "string", description: "Tax rate ID" },
-        duracionMinutos: { type: "number", description: "Duration in minutes (for services/appointments)" },
-        modalidad: { type: "string", enum: ["presencial", "virtual", "hibrido"] },
-        unidad: { type: "string", description: "Unit (unidad, hora, servicio, mes, sesion, paquete)" },
-        activo: { type: "boolean", description: "Is active (default: true)" },
-        destacado: { type: "boolean", description: "Is featured (default: false)" },
-        customFields: {
-          type: "array",
-          description: "Custom fields array [{key, label, type, value, unit?, options?}]",
-          items: {
-            type: "object",
-            properties: {
-              key: { type: "string" },
-              label: { type: "string" },
-              type: { type: "string", enum: ["text", "number", "select", "date", "boolean"] },
-              value: { type: ["string", "number", "boolean"] },
-              unit: { type: "string" },
-              options: { type: "array", items: { type: "string" } }
-            }
-          }
-        },
-        categorias: { 
-          type: "array", 
-          items: { type: "string" },
-          description: "Categories array (e.g., ['Inmuebles', 'Oficina', 'Lujo'])" 
-        },
-        etiquetas: { 
-          type: "array", 
-          items: { type: "string" },
-          description: "Tags array (e.g., ['vip', 'oportunidad', 'nuevo'])" 
-        },
-        metadata: {
-          type: "object",
-          description: "Additional metadata (e.g., {industria: 'real-estate', prioridad: 3})"
-        },
-        media: {
-          type: "object",
-          description: "Media gallery {imagenes: [], video_tour, documento_tecnico, tour_360}",
-          properties: {
-            imagenes: { type: "array", items: { type: "string" } },
-            video_tour: { type: "string" },
-            documento_tecnico: { type: "string" },
-            tour_360: { type: "string" }
-          }
-        },
-        pricing: {
-          type: "object",
-          description: "Flexible pricing {tipo, descuentos[], impuestos}",
-          properties: {
-            tipo: { type: "string", enum: ["unico", "recurrente", "por_hora"] },
-            descuentos: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  tipo: { type: "string" },
-                  min: { type: "number" },
-                  descuento: { type: "number" }
-                }
-              }
-            },
-            impuestos: {
-              type: "object",
-              properties: {
-                iva: { type: "number" },
-                incluido: { type: "boolean" }
-              }
-            }
-          }
-        }
-      },
-      required: ["nombre", "precioBase"]
-    }
-  },
-  {
-    name: "volkern_update_catalogo_item",
-    description: "Update an existing catalog item. Supports partial updates of any field including custom fields, categories, tags, media, and pricing",
-    inputSchema: {
-      type: "object",
-      properties: {
-        itemId: { type: "string", description: "The catalog item's unique ID" },
-        nombre: { type: "string" },
-        descripcion: { type: "string" },
-        sku: { type: "string" },
-        tipo: { type: "string", enum: ["producto", "servicio", "cita", "academia"] },
-        precioBase: { type: "number" },
-        moneda: { type: "string" },
-        categoriaFiscal: { type: "string" },
-        tasaImpuestoId: { type: "string" },
-        duracionMinutos: { type: "number" },
-        modalidad: { type: "string" },
-        unidad: { type: "string" },
-        activo: { type: "boolean" },
-        destacado: { type: "boolean" },
-        customFields: { type: "array", description: "Replace custom fields" },
-        categorias: { type: "array", items: { type: "string" }, description: "Replace categories" },
-        etiquetas: { type: "array", items: { type: "string" }, description: "Replace tags" },
-        metadata: { type: "object", description: "Replace metadata" },
-        media: { type: "object", description: "Replace media gallery" },
-        pricing: { type: "object", description: "Replace pricing configuration" }
-      },
-      required: ["itemId"]
-    }
-  },
-  {
-    name: "volkern_search_catalogo",
-    description: "Search catalog items by text across name, description and SKU. Returns items matching the query with their categories and tags.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Search query" },
-        tipo: { type: "string", enum: ["producto", "servicio", "cita", "academia"] },
-        limit: { type: "number", description: "Max results (default: 20)" }
-      },
-      required: ["query"]
-    }
-  },
-
-  // === SERVICES (LEGACY - uses catalog) ===
+  // === SERVICES ===
   {
     name: "volkern_list_servicios",
-    description: "List available services from the catalog (legacy endpoint, use volkern_list_catalogo with tipo='servicio' instead)",
+    description: "List available services from the catalog",
     inputSchema: {
       type: "object",
       properties: {
@@ -416,7 +249,7 @@ const tools: Tool[] = [
   },
   {
     name: "volkern_get_servicio",
-    description: "Get detailed information about a specific service (legacy endpoint)",
+    description: "Get detailed information about a specific service",
     inputSchema: {
       type: "object",
       properties: {
@@ -564,6 +397,532 @@ const tools: Tool[] = [
       },
       required: ["leadId", "contenido"]
     }
+  },
+
+  // === CONTACTS / COMPANIES ===
+  {
+    name: "volkern_list_contacts",
+    description: "List contacts (people or companies) with optional filters",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tipo: { 
+          type: "string", 
+          enum: ["person", "company"],
+          description: "Filter by contact type (person or company)"
+        },
+        search: { type: "string", description: "Search by name, email, or company" },
+        page: { type: "number", description: "Page number (default: 1)" },
+        limit: { type: "number", description: "Results per page (default: 50)" }
+      }
+    }
+  },
+  {
+    name: "volkern_get_contact",
+    description: "Get detailed information about a specific contact by ID",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contactId: { type: "string", description: "The contact's unique ID" }
+      },
+      required: ["contactId"]
+    }
+  },
+  {
+    name: "volkern_create_contact",
+    description: "Create a new contact (person or company)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nombre: { type: "string", description: "Contact/company name (required)" },
+        email: { type: "string", description: "Email address" },
+        telefono: { type: "string", description: "Phone number" },
+        tipo: { 
+          type: "string", 
+          enum: ["person", "company"],
+          description: "Contact type (default: person)"
+        },
+        cargo: { type: "string", description: "Job title (for persons)" },
+        ubicacion: { type: "string", description: "Location/address" },
+        companyId: { type: "string", description: "ID of parent company (for persons)" },
+        linkedin: { type: "string", description: "LinkedIn profile URL" },
+        notas: { type: "string", description: "Notes about the contact" },
+        tags: { type: "array", items: { type: "string" }, description: "Tags for categorization" }
+      },
+      required: ["nombre"]
+    }
+  },
+  {
+    name: "volkern_update_contact",
+    description: "Update an existing contact's information",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contactId: { type: "string", description: "The contact's unique ID" },
+        nombre: { type: "string" },
+        email: { type: "string" },
+        telefono: { type: "string" },
+        cargo: { type: "string" },
+        ubicacion: { type: "string" },
+        linkedin: { type: "string" },
+        notas: { type: "string" },
+        tags: { type: "array", items: { type: "string" } }
+      },
+      required: ["contactId"]
+    }
+  },
+
+  // === DEALS / PIPELINE ===
+  {
+    name: "volkern_list_deals",
+    description: "List deals/opportunities in the sales pipeline with optional filters",
+    inputSchema: {
+      type: "object",
+      properties: {
+        etapa: { type: "string", description: "Filter by pipeline stage name" },
+        estado: { 
+          type: "string", 
+          enum: ["abierto", "ganado", "perdido"],
+          description: "Filter by deal status"
+        },
+        prioridad: {
+          type: "string",
+          enum: ["baja", "media", "alta"],
+          description: "Filter by priority"
+        },
+        search: { type: "string", description: "Search by title or contact name" },
+        page: { type: "number" },
+        limit: { type: "number" }
+      }
+    }
+  },
+  {
+    name: "volkern_get_deal",
+    description: "Get detailed information about a specific deal",
+    inputSchema: {
+      type: "object",
+      properties: {
+        dealId: { type: "string", description: "The deal's unique ID" }
+      },
+      required: ["dealId"]
+    }
+  },
+  {
+    name: "volkern_create_deal",
+    description: "Create a new deal/opportunity in the sales pipeline",
+    inputSchema: {
+      type: "object",
+      properties: {
+        titulo: { type: "string", description: "Deal title (required)" },
+        valor: { type: "number", description: "Deal value/amount" },
+        moneda: { type: "string", description: "Currency code (default: EUR)" },
+        etapa: { type: "string", description: "Pipeline stage name (default: Calificación)" },
+        prioridad: { type: "string", enum: ["baja", "media", "alta"] },
+        probabilidad: { type: "number", description: "Win probability (0-100)" },
+        fechaEstimadaCierre: { type: "string", description: "Expected close date (YYYY-MM-DD)" },
+        leadId: { type: "string", description: "Associated lead ID" },
+        contactId: { type: "string", description: "Associated contact ID" },
+        companyId: { type: "string", description: "Associated company ID" },
+        descripcion: { type: "string", description: "Deal description" }
+      },
+      required: ["titulo"]
+    }
+  },
+  {
+    name: "volkern_update_deal",
+    description: "Update an existing deal (change stage, value, status, etc.)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        dealId: { type: "string", description: "The deal's unique ID" },
+        titulo: { type: "string" },
+        valor: { type: "number" },
+        etapa: { type: "string", description: "Move to new pipeline stage" },
+        estado: { type: "string", enum: ["abierto", "ganado", "perdido"] },
+        prioridad: { type: "string" },
+        probabilidad: { type: "number" },
+        fechaEstimadaCierre: { type: "string" },
+        descripcion: { type: "string" }
+      },
+      required: ["dealId"]
+    }
+  },
+  {
+    name: "volkern_list_pipeline_stages",
+    description: "List all pipeline stages configured for the tenant",
+    inputSchema: {
+      type: "object",
+      properties: {}
+    }
+  },
+  {
+    name: "volkern_get_sales_forecast",
+    description: "Get sales forecast and pipeline analytics",
+    inputSchema: {
+      type: "object",
+      properties: {
+        periodo: { 
+          type: "string", 
+          enum: ["mes", "trimestre", "año"],
+          description: "Forecast period"
+        }
+      }
+    }
+  },
+
+  // === COTIZACIONES (QUOTES) ===
+  {
+    name: "volkern_list_cotizaciones",
+    description: "List quotations/quotes with optional filters",
+    inputSchema: {
+      type: "object",
+      properties: {
+        estado: { 
+          type: "string", 
+          enum: ["borrador", "enviada", "aceptada", "rechazada", "expirada"],
+          description: "Filter by quote status"
+        },
+        search: { type: "string", description: "Search by number or client name" },
+        page: { type: "number" },
+        limit: { type: "number" }
+      }
+    }
+  },
+  {
+    name: "volkern_get_cotizacion",
+    description: "Get detailed information about a specific quotation",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cotizacionId: { type: "string", description: "The quotation's unique ID" }
+      },
+      required: ["cotizacionId"]
+    }
+  },
+  {
+    name: "volkern_create_cotizacion",
+    description: "Create a new quotation/quote",
+    inputSchema: {
+      type: "object",
+      properties: {
+        leadId: { type: "string", description: "Associated lead ID" },
+        dealId: { type: "string", description: "Associated deal ID" },
+        validezDias: { type: "number", description: "Validity period in days (default: 30)" },
+        notas: { type: "string", description: "Notes or terms" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              concepto: { type: "string", description: "Item description" },
+              cantidad: { type: "number" },
+              precioUnitario: { type: "number" },
+              descuento: { type: "number", description: "Discount percentage" }
+            },
+            required: ["concepto", "cantidad", "precioUnitario"]
+          },
+          description: "Line items for the quote"
+        }
+      },
+      required: ["items"]
+    }
+  },
+  {
+    name: "volkern_update_cotizacion",
+    description: "Update a quotation (only if status is 'borrador')",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cotizacionId: { type: "string", description: "The quotation's unique ID" },
+        estado: { type: "string", enum: ["borrador", "enviada", "aceptada", "rechazada"] },
+        validezDias: { type: "number" },
+        notas: { type: "string" },
+        items: { type: "array", description: "Updated line items" }
+      },
+      required: ["cotizacionId"]
+    }
+  },
+  {
+    name: "volkern_send_cotizacion",
+    description: "Send a quotation to the client via email",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cotizacionId: { type: "string", description: "The quotation's unique ID" },
+        mensaje: { type: "string", description: "Custom message for the email" }
+      },
+      required: ["cotizacionId"]
+    }
+  },
+
+  // === CONTRATOS (CONTRACTS) ===
+  {
+    name: "volkern_list_contratos",
+    description: "List contracts with optional filters",
+    inputSchema: {
+      type: "object",
+      properties: {
+        estado: { 
+          type: "string", 
+          enum: ["borrador", "enviado", "firmado_cliente", "firmado_empresa", "activo", "completado", "cancelado"],
+          description: "Filter by contract status"
+        },
+        tipo: {
+          type: "string",
+          enum: ["servicios", "productos", "suscripcion", "proyecto", "otro"],
+          description: "Filter by contract type"
+        },
+        search: { type: "string", description: "Search by number or client name" },
+        page: { type: "number" },
+        limit: { type: "number" }
+      }
+    }
+  },
+  {
+    name: "volkern_get_contrato",
+    description: "Get detailed information about a specific contract",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contratoId: { type: "string", description: "The contract's unique ID" }
+      },
+      required: ["contratoId"]
+    }
+  },
+  {
+    name: "volkern_create_contrato",
+    description: "Create a new contract",
+    inputSchema: {
+      type: "object",
+      properties: {
+        titulo: { type: "string", description: "Contract title (required)" },
+        tipo: { type: "string", enum: ["servicios", "productos", "suscripcion", "proyecto", "otro"] },
+        leadId: { type: "string", description: "Associated lead ID" },
+        dealId: { type: "string", description: "Associated deal ID" },
+        cotizacionId: { type: "string", description: "Source quotation ID" },
+        fechaInicio: { type: "string", description: "Contract start date (YYYY-MM-DD)" },
+        fechaFin: { type: "string", description: "Contract end date (YYYY-MM-DD)" },
+        metodoPago: { type: "string", enum: ["unico", "mensual", "trimestral", "anual"] },
+        clausulas: { type: "string", description: "Contract terms and conditions" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              concepto: { type: "string" },
+              cantidad: { type: "number" },
+              precioUnitario: { type: "number" }
+            }
+          }
+        }
+      },
+      required: ["titulo"]
+    }
+  },
+  {
+    name: "volkern_create_contrato_from_cotizacion",
+    description: "Create a contract from an accepted quotation",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cotizacionId: { type: "string", description: "The accepted quotation's ID" },
+        fechaInicio: { type: "string", description: "Contract start date" },
+        fechaFin: { type: "string", description: "Contract end date" },
+        metodoPago: { type: "string", enum: ["unico", "mensual", "trimestral", "anual"] },
+        clausulas: { type: "string", description: "Additional contract terms" }
+      },
+      required: ["cotizacionId"]
+    }
+  },
+  {
+    name: "volkern_send_contrato",
+    description: "Send a contract to the client for signature",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contratoId: { type: "string", description: "The contract's unique ID" },
+        mensaje: { type: "string", description: "Custom message for the email" }
+      },
+      required: ["contratoId"]
+    }
+  },
+
+  // === CATÁLOGO (FASE 4 - INTEGRACIÓN COMPLETA) ===
+  {
+    name: "volkern_catalog_suggestions",
+    description: "Quick search for catalog items to use in quotes, contracts, and orders. Returns suggestions formatted for auto-complete.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        q: { type: "string", description: "Search query (name, SKU, or description)" },
+        tipo: { type: "string", enum: ["producto", "servicio"], description: "Filter by item type" },
+        limit: { type: "number", description: "Max results (default: 10, max: 50)" }
+      }
+    }
+  },
+  {
+    name: "volkern_list_catalogo",
+    description: "List catalog items with filters. Supports Phase 1 fields: customFields, categories, tags, media, pricing.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tipo: { type: "string", enum: ["producto", "servicio"], description: "Filter by type" },
+        categoria: { type: "string", description: "Filter by category (exact or partial match)" },
+        etiqueta: { type: "string", description: "Filter by tag" },
+        search: { type: "string", description: "Search by name, SKU, description" },
+        activo: { type: "boolean", description: "Filter by active status (default: true)" },
+        page: { type: "number" },
+        limit: { type: "number" }
+      }
+    }
+  },
+  {
+    name: "volkern_get_catalogo_item",
+    description: "Get full details of a catalog item including Phase 1 fields (customFields, categories, tags, media, pricing)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        itemId: { type: "string", description: "The catalog item's unique ID" }
+      },
+      required: ["itemId"]
+    }
+  },
+  {
+    name: "volkern_create_cotizacion_from_catalog",
+    description: "Create a quotation pre-populated from catalog items. Inherits pricing, taxes, and custom fields. Applies volume discounts if configured.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        titulo: { type: "string", description: "Quote title (required)" },
+        descripcion: { type: "string", description: "Quote description" },
+        leadId: { type: "string", description: "Associated lead ID" },
+        dealId: { type: "string", description: "Associated deal ID" },
+        catalogItems: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              catalogoItemId: { type: "string", description: "Catalog item ID (required)" },
+              cantidad: { type: "number", description: "Quantity (required)" },
+              descuento: { type: "number", description: "Line item discount %" },
+              precioOverride: { type: "number", description: "Override catalog price" },
+              descripcionOverride: { type: "string", description: "Override catalog description" }
+            },
+            required: ["catalogoItemId", "cantidad"]
+          },
+          description: "Array of catalog items to include"
+        },
+        descuentoPorcentaje: { type: "number", description: "Global discount %" },
+        moneda: { type: "string", description: "Currency (default from catalog)" },
+        validezDias: { type: "number", description: "Validity days (default: 30)" },
+        terminosPago: { type: "string", description: "Payment terms" },
+        notasCliente: { type: "string", description: "Notes for client" },
+        clienteNombre: { type: "string" },
+        clienteEmail: { type: "string" },
+        clienteEmpresa: { type: "string" },
+        clienteTelefono: { type: "string" },
+        emisorId: { type: "string", description: "Fiscal issuer ID" }
+      },
+      required: ["titulo", "catalogItems"]
+    }
+  },
+  {
+    name: "volkern_create_orden_from_cotizacion",
+    description: "Convert an accepted quotation into a sales order. Inherits all items, client data, and catalog references.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cotizacionId: { type: "string", description: "The quotation's unique ID (required)" },
+        fechaEntrega: { type: "string", description: "Expected delivery date (YYYY-MM-DD)" },
+        notas: { type: "string", description: "Order notes" },
+        notasInternas: { type: "string", description: "Internal notes" },
+        condicionesVenta: { type: "string", description: "Sales terms" },
+        referenciaCliente: { type: "string", description: "Client reference/PO number" },
+        ajustarPrecios: { type: "boolean", description: "Update prices from current catalog values (default: false)" }
+      },
+      required: ["cotizacionId"]
+    }
+  },
+
+  // === ÓRDENES DE VENTA (SALES ORDERS) ===
+  {
+    name: "volkern_list_ordenes",
+    description: "List sales orders with optional filters",
+    inputSchema: {
+      type: "object",
+      properties: {
+        estado: { 
+          type: "string", 
+          enum: ["borrador", "confirmada", "en_proceso", "completada", "cancelada"],
+          description: "Filter by order status"
+        },
+        leadId: { type: "string", description: "Filter by lead ID" },
+        contactId: { type: "string", description: "Filter by contact ID" },
+        contratoId: { type: "string", description: "Filter by contract ID" },
+        dealId: { type: "string", description: "Filter by deal ID" },
+        fechaDesde: { type: "string", description: "Start date filter (YYYY-MM-DD)" },
+        fechaHasta: { type: "string", description: "End date filter (YYYY-MM-DD)" },
+        search: { type: "string", description: "Search by order number or reference" },
+        page: { type: "number" },
+        limit: { type: "number" }
+      }
+    }
+  },
+  {
+    name: "volkern_get_orden",
+    description: "Get detailed information about a specific sales order including items with catalog references",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ordenId: { type: "string", description: "The sales order's unique ID" }
+      },
+      required: ["ordenId"]
+    }
+  },
+  {
+    name: "volkern_create_orden",
+    description: "Create a new sales order directly (without quotation). Use volkern_create_orden_from_cotizacion for conversion.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        leadId: { type: "string", description: "Lead ID (required if no contactId)" },
+        contactId: { type: "string", description: "Contact ID (required if no leadId)" },
+        dealId: { type: "string", description: "Associated deal ID" },
+        contratoId: { type: "string", description: "Associated contract ID" },
+        emisorId: { type: "string", description: "Fiscal issuer ID" },
+        fechaOrden: { type: "string", description: "Order date (YYYY-MM-DD)" },
+        fechaEntrega: { type: "string", description: "Delivery date (YYYY-MM-DD)" },
+        moneda: { type: "string", description: "Currency (default: EUR)" },
+        descuentoGlobal: { type: "number", description: "Global discount (% or fixed)" },
+        tipoDescuento: { type: "string", enum: ["porcentaje", "fijo"] },
+        notas: { type: "string" },
+        notasInternas: { type: "string" },
+        condicionesVenta: { type: "string" },
+        referenciaCliente: { type: "string" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              concepto: { type: "string" },
+              descripcion: { type: "string" },
+              cantidad: { type: "number" },
+              unidad: { type: "string" },
+              precioUnitario: { type: "number" },
+              descuento: { type: "number" },
+              tasaImpuestoId: { type: "string" },
+              porcentajeImpuesto: { type: "number" },
+              aplicaRetencion: { type: "boolean" },
+              porcentajeRetencion: { type: "number" },
+              catalogoItemId: { type: "string", description: "Link to catalog item" }
+            },
+            required: ["concepto", "cantidad", "precioUnitario"]
+          },
+          description: "Order line items"
+        }
+      },
+      required: ["items"]
+    }
   }
 ];
 
@@ -619,35 +978,7 @@ async function handleToolCall(
     case "volkern_cita_accion":
       return volkernRequest("/citas/accion", "POST", args);
 
-    // CATALOG (ENHANCED)
-    case "volkern_list_catalogo": {
-      const params = new URLSearchParams();
-      if (args.tipo) params.append("tipo", String(args.tipo));
-      if (args.activo !== undefined) params.append("activo", String(args.activo));
-      if (args.categoria) params.append("categoria", String(args.categoria));
-      if (args.etiqueta) params.append("etiqueta", String(args.etiqueta));
-      if (args.search) params.append("search", String(args.search));
-      if (args.page) params.append("page", String(args.page));
-      if (args.limit) params.append("limit", String(args.limit));
-      return volkernRequest(`/catalogo?${params.toString()}`);
-    }
-    case "volkern_get_catalogo_item":
-      return volkernRequest(`/catalogo/${args.itemId}`);
-    case "volkern_create_catalogo_item":
-      return volkernRequest("/catalogo", "POST", args);
-    case "volkern_update_catalogo_item": {
-      const { itemId, ...data } = args;
-      return volkernRequest(`/catalogo/${itemId}`, "PATCH", data);
-    }
-    case "volkern_search_catalogo": {
-      const params = new URLSearchParams();
-      params.append("search", String(args.query));
-      if (args.tipo) params.append("tipo", String(args.tipo));
-      if (args.limit) params.append("limit", String(args.limit));
-      return volkernRequest(`/catalogo?${params.toString()}`);
-    }
-
-    // SERVICES (LEGACY)
+    // SERVICES
     case "volkern_list_servicios": {
       const params = new URLSearchParams();
       if (args.activo !== undefined) params.append("activo", String(args.activo));
@@ -693,6 +1024,136 @@ async function handleToolCall(
       return volkernRequest(`/leads/${noteLeadId}/notes`, "POST", noteData);
     }
 
+    // CONTACTS / COMPANIES
+    case "volkern_list_contacts": {
+      const params = new URLSearchParams();
+      if (args.tipo) params.append("tipo", String(args.tipo));
+      if (args.search) params.append("search", String(args.search));
+      if (args.page) params.append("page", String(args.page));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/contacts?${params.toString()}`);
+    }
+    case "volkern_get_contact":
+      return volkernRequest(`/contacts/${args.contactId}`);
+    case "volkern_create_contact":
+      return volkernRequest("/contacts", "POST", args);
+    case "volkern_update_contact": {
+      const { contactId, ...contactData } = args;
+      return volkernRequest(`/contacts/${contactId}`, "PATCH", contactData);
+    }
+
+    // DEALS / PIPELINE
+    case "volkern_list_deals": {
+      const params = new URLSearchParams();
+      if (args.etapa) params.append("etapa", String(args.etapa));
+      if (args.estado) params.append("estado", String(args.estado));
+      if (args.prioridad) params.append("prioridad", String(args.prioridad));
+      if (args.search) params.append("search", String(args.search));
+      if (args.page) params.append("page", String(args.page));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/deals?${params.toString()}`);
+    }
+    case "volkern_get_deal":
+      return volkernRequest(`/deals/${args.dealId}`);
+    case "volkern_create_deal":
+      return volkernRequest("/deals", "POST", args);
+    case "volkern_update_deal": {
+      const { dealId, ...dealData } = args;
+      return volkernRequest(`/deals/${dealId}`, "PATCH", dealData);
+    }
+    case "volkern_list_pipeline_stages":
+      return volkernRequest("/pipeline/stages");
+    case "volkern_get_sales_forecast": {
+      const params = new URLSearchParams();
+      if (args.periodo) params.append("periodo", String(args.periodo));
+      return volkernRequest(`/deals/forecast?${params.toString()}`);
+    }
+
+    // COTIZACIONES (QUOTES)
+    case "volkern_list_cotizaciones": {
+      const params = new URLSearchParams();
+      if (args.estado) params.append("estado", String(args.estado));
+      if (args.search) params.append("search", String(args.search));
+      if (args.page) params.append("page", String(args.page));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/cotizaciones?${params.toString()}`);
+    }
+    case "volkern_get_cotizacion":
+      return volkernRequest(`/cotizaciones/${args.cotizacionId}`);
+    case "volkern_create_cotizacion":
+      return volkernRequest("/cotizaciones", "POST", args);
+    case "volkern_update_cotizacion": {
+      const { cotizacionId, ...cotizacionData } = args;
+      return volkernRequest(`/cotizaciones/${cotizacionId}`, "PATCH", cotizacionData);
+    }
+    case "volkern_send_cotizacion":
+      return volkernRequest(`/cotizaciones/${args.cotizacionId}/send`, "POST", { mensaje: args.mensaje });
+
+    // CONTRATOS (CONTRACTS)
+    case "volkern_list_contratos": {
+      const params = new URLSearchParams();
+      if (args.estado) params.append("estado", String(args.estado));
+      if (args.tipo) params.append("tipo", String(args.tipo));
+      if (args.search) params.append("search", String(args.search));
+      if (args.page) params.append("page", String(args.page));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/contratos?${params.toString()}`);
+    }
+    case "volkern_get_contrato":
+      return volkernRequest(`/contratos/${args.contratoId}`);
+    case "volkern_create_contrato":
+      return volkernRequest("/contratos", "POST", args);
+    case "volkern_create_contrato_from_cotizacion":
+      return volkernRequest("/contratos/from-cotizacion", "POST", args);
+    case "volkern_send_contrato":
+      return volkernRequest(`/contratos/${args.contratoId}/send`, "POST", { mensaje: args.mensaje });
+
+    // CATÁLOGO (FASE 4)
+    case "volkern_catalog_suggestions": {
+      const params = new URLSearchParams();
+      if (args.q) params.append("q", String(args.q));
+      if (args.tipo) params.append("tipo", String(args.tipo));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/catalogo/suggestions?${params.toString()}`);
+    }
+    case "volkern_list_catalogo": {
+      const params = new URLSearchParams();
+      if (args.tipo) params.append("tipo", String(args.tipo));
+      if (args.categoria) params.append("categoria", String(args.categoria));
+      if (args.etiqueta) params.append("etiqueta", String(args.etiqueta));
+      if (args.search) params.append("search", String(args.search));
+      if (args.activo !== undefined) params.append("activo", String(args.activo));
+      if (args.page) params.append("page", String(args.page));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/catalogo?${params.toString()}`);
+    }
+    case "volkern_get_catalogo_item":
+      return volkernRequest(`/catalogo/${args.itemId}`);
+    case "volkern_create_cotizacion_from_catalog":
+      return volkernRequest("/cotizaciones/from-catalog", "POST", args);
+    case "volkern_create_orden_from_cotizacion":
+      return volkernRequest("/ordenes-venta/from-cotizacion", "POST", args);
+
+    // ÓRDENES DE VENTA
+    case "volkern_list_ordenes": {
+      const params = new URLSearchParams();
+      if (args.estado) params.append("estado", String(args.estado));
+      if (args.leadId) params.append("leadId", String(args.leadId));
+      if (args.contactId) params.append("contactId", String(args.contactId));
+      if (args.contratoId) params.append("contratoId", String(args.contratoId));
+      if (args.dealId) params.append("dealId", String(args.dealId));
+      if (args.fechaDesde) params.append("fechaDesde", String(args.fechaDesde));
+      if (args.fechaHasta) params.append("fechaHasta", String(args.fechaHasta));
+      if (args.search) params.append("search", String(args.search));
+      if (args.page) params.append("page", String(args.page));
+      if (args.limit) params.append("limit", String(args.limit));
+      return volkernRequest(`/ordenes-venta?${params.toString()}`);
+    }
+    case "volkern_get_orden":
+      return volkernRequest(`/ordenes-venta/${args.ordenId}`);
+    case "volkern_create_orden":
+      return volkernRequest("/ordenes-venta", "POST", args);
+
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -704,7 +1165,7 @@ async function handleToolCall(
 const server = new Server(
   {
     name: "volkern-mcp-server",
-    version: "1.0.0",
+    version: "1.3.0",
   },
   {
     capabilities: {

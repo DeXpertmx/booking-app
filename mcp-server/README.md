@@ -1,22 +1,13 @@
-# Volkern MCP Server (v1.1.0)
+# Volkern MCP Server v1.2.0
 
 Servidor MCP (Model Context Protocol) para integrar Volkern CRM con agentes de IA como Claude, GPT, y otros clientes compatibles con MCP.
 
-## Novedades v1.1.0 - Catálogo Mejorado
-
-### Nuevas Herramientas de Catálogo
-- `volkern_list_catalogo` - Listar ítems con filtros avanzados (tipo, categoría, etiqueta)
-- `volkern_get_catalogo_item` - Obtener detalle completo de un ítem
-- `volkern_create_catalogo_item` - Crear ítem con campos personalizados, categorías, media y precios flexibles
-- `volkern_update_catalogo_item` - Actualizar cualquier campo de un ítem
-- `volkern_search_catalogo` - Búsqueda por texto en nombre, descripción y SKU
-
-### Funcionalidades Soportadas
-- **Campos personalizados**: Atributos dinámicos por ítem (metros², habitaciones, idioma, etc.)
-- **Categorías multinivel**: Organización jerárquica (Inmuebles > Oficina > Lujo)
-- **Etiquetas**: Tags para filtrado rápido (vip, oportunidad, nuevo)
-- **Galería multimedia**: Imágenes, video tours, documentos técnicos, tours 360°
-- **Precios flexibles**: Pago único, recurrente o por hora con descuentos por volumen
+## Novedades v1.2.0
+- **Contactos y Empresas**: CRUD completo para gestión de contactos de negocios y empresas
+- **Pipeline de Ventas (Deals)**: Crear, actualizar y mover oportunidades entre etapas
+- **Pronóstico de Ventas**: Acceso a analíticas y predicciones del pipeline
+- **Cotizaciones**: Crear, editar y enviar propuestas de precios a clientes
+- **Contratos**: Generar contratos desde cotizaciones o manualmente, con soporte de firma digital
 
 ## Instalación
 
