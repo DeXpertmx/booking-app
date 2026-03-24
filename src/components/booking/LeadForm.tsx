@@ -66,15 +66,16 @@ export default function LeadForm({ service, dateTime, onSubmit, onBack }: LeadFo
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 ml-1">Teléfono</label>
+                        <label className="text-sm font-medium text-slate-700 ml-1">Teléfono *</label>
                         <div className="relative">
                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
-                                {...register("telefono")}
+                                {...register("telefono", { required: true })}
                                 className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                 placeholder="+52 55 1234 5678"
                             />
                         </div>
+                        {errors.telefono && <span className="text-xs text-red-500 ml-1">Este campo es obligatorio</span>}
                     </div>
 
                     <div className="space-y-2">

@@ -43,7 +43,7 @@ export default function BookingPage() {
         // contextoProyecto removed to keep lead clean as per user request
       });
 
-      if (!lead.id) throw new Error("Could not result lead ID from CRM");
+      if (!lead.id) throw new Error("Could not get lead ID from CRM (v1.2.11)");
 
       // 2. Create Appointment in Volkern
       const tenantTz = process.env.NEXT_PUBLIC_TENANT_TIMEZONE || 'Europe/Madrid';

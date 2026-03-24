@@ -102,20 +102,25 @@ export class VolkernClient {
     }
 
     static async upsertLead(leadData: Lead): Promise<Lead> {
-        const existingLead = await this.getLeadByEmail(leadData.email);
+        // Sanitize data: remove empty strings for optional fields
+        const sanitizedData = Object.fromEntries(
+            Object.entries(leadData).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
+        ) as Lead;
+
+        const existingLead = await this.getLeadByEmail(sanitizedData.email);
 
         if (existingLead && existingLead.id) {
             console.log(`[VolkernClient] Lead exists (${existingLead.id}), updating...`);
             return this.request<Lead>(`/leads/${existingLead.id}`, {
                 method: 'PATCH',
-                body: JSON.stringify(leadData),
+                body: JSON.stringify(sanitizedData),
             });
         }
 
-        console.log(`[VolkernClient] Lead not found, creating new lead for ${leadData.email}`);
+        console.log(`[VolkernClient] Lead not found, creating new lead for ${sanitizedData.email}`);
         const response = await this.request<any>('/leads', {
             method: 'POST',
-            body: JSON.stringify(leadData),
+            body: JSON.stringify(sanitizedData),
         });
 
         return response.lead || response;
