@@ -128,10 +128,11 @@ export class VolkernClient {
 
         if (existingLead && existingLead.id) {
             console.log(`[VolkernClient] Lead exists (${existingLead.id}), updating...`);
-            return this.request<Lead>(`/leads/${existingLead.id}`, {
+            const response = await this.request<any>(`/leads/${existingLead.id}`, {
                 method: 'PATCH',
                 body: JSON.stringify(sanitizedData),
             });
+            return this.extractLeadFromResponse(response, existingLead.id);
         }
 
         console.log(`[VolkernClient] Lead not found, creating new lead for ${sanitizedData.email}`);
@@ -140,7 +141,19 @@ export class VolkernClient {
             body: JSON.stringify(sanitizedData),
         });
 
-        return response.lead || response;
+        return this.extractLeadFromResponse(response);
+    }
+
+    private static extractLeadFromResponse(response: any, fallbackId?: string): Lead {
+        console.log('[VolkernClient] Raw lead response:', JSON.stringify(response).substring(0, 500));
+
+        if (response?.lead?.id) return response.lead;
+        if (response?.id) return response;
+        if (response?.data?.id) return response.data;
+        if (response?.success && response?.lead) return response.lead;
+        if (fallbackId) return { ...response, id: fallbackId };
+
+        throw new Error(`Could not get lead ID from CRM. Response: ${JSON.stringify(response).substring(0, 300)}`);
     }
 
     static async getPipelineStages(): Promise<PipelineStage[]> {
