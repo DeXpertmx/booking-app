@@ -21,11 +21,9 @@ export class VolkernClient {
         return response.json();
     }
 
-    // === Catalog & Services ===
     static async getServices(): Promise<Service[]> {
         try {
-            // Updated to use the new catalog endpoint
-            const data = await this.request<any>('/catalogo?tipo=servicio&activo=true');
+            const data = await this.request<any>('/servicios?activo=true');
 
             let services: any[] = [];
             if (Array.isArray(data)) {
@@ -37,7 +35,6 @@ export class VolkernClient {
             }
 
             if (services.length > 0) {
-                // Map precioBase to precio for backward compatibility if needed
                 return services.map(item => ({
                     ...item,
                     precio: item.precio ?? item.precioBase ?? 0
@@ -46,9 +43,33 @@ export class VolkernClient {
 
             return this.getFallbackServices();
         } catch (error) {
-            console.warn('[VolkernClient] getServices failed, using fallback services:', error);
-            return this.getFallbackServices();
+            console.warn('[VolkernClient] getServices failed, trying /catalogo fallback:', error);
+            return this.getServicesViaCatalogo();
         }
+    }
+
+    private static async getServicesViaCatalogo(): Promise<Service[]> {
+        try {
+            const data = await this.request<any>('/catalogo?tipo=servicio&activo=true');
+
+            let services: any[] = [];
+            if (Array.isArray(data)) {
+                services = data;
+            } else if (data && typeof data === 'object' && 'items' in data && Array.isArray(data.items)) {
+                services = data.items;
+            }
+
+            if (services.length > 0) {
+                return services.map(item => ({
+                    ...item,
+                    precio: item.precio ?? item.precioBase ?? 0
+                }));
+            }
+        } catch (error) {
+            console.warn('[VolkernClient] /catalogo fallback also failed:', error);
+        }
+
+        return this.getFallbackServices();
     }
 
     private static getFallbackServices(): Service[] {
@@ -68,7 +89,6 @@ export class VolkernClient {
         ];
     }
 
-    // === Appointments ===
     static async getAvailability(fecha: string, duracion: number = 60, timezone: string = 'UTC'): Promise<AvailabilityResponse> {
         return this.request<AvailabilityResponse>(`/citas/disponibilidad?fecha=${fecha}&duracion=${duracion}&timezone=${timezone}`);
     }
@@ -80,10 +100,8 @@ export class VolkernClient {
         });
     }
 
-    // === Leads ===
     static async getLeadByEmail(email: string): Promise<Lead | null> {
         try {
-            // Search via query parameter
             const response = await this.request<any>(`/leads?search=${encodeURIComponent(email)}`);
             const leads = Array.isArray(response) ? response : (response.leads || []);
 
@@ -102,7 +120,6 @@ export class VolkernClient {
     }
 
     static async upsertLead(leadData: Lead): Promise<Lead> {
-        // Sanitize data: remove empty strings for optional fields
         const sanitizedData = Object.fromEntries(
             Object.entries(leadData).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
         ) as Lead;
@@ -126,7 +143,6 @@ export class VolkernClient {
         return response.lead || response;
     }
 
-    // === Pipeline & Deals ===
     static async getPipelineStages(): Promise<PipelineStage[]> {
         return this.request<PipelineStage[]>('/pipeline/stages');
     }
@@ -148,7 +164,6 @@ export class VolkernClient {
         return this.request<SalesForecast>(`/deals/forecast?periodo=${periodo}`);
     }
 
-    // === Quotes & Cotizaciones ===
     static async createQuote(quoteData: Quote): Promise<Quote> {
         return this.request<Quote>('/cotizaciones', {
             method: 'POST',
@@ -163,7 +178,6 @@ export class VolkernClient {
         });
     }
 
-    // === Contracts ===
     static async createContract(contractData: Contract): Promise<Contract> {
         return this.request<Contract>('/contratos', {
             method: 'POST',
@@ -178,7 +192,6 @@ export class VolkernClient {
         });
     }
 
-    // === Interactions & Notes ===
     static async createInteraction(interactionData: Interaction): Promise<any> {
         const { leadId, ...data } = interactionData;
         return this.request(`/leads/${leadId}/interactions`, {

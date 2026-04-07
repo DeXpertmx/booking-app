@@ -147,7 +147,12 @@ export interface Contract {
 export interface SalesForecast {
     basicForecast: { total: number; ponderado: number };
     adjustedForecast: { total: number; confianza: number };
+    conversionRates: Record<string, { teorica: number; real: number }>;
     cycleTime: { promedioDias: number };
+    projection6Months: { mes: string; estimado: number }[];
+    historicalSales: { mes: string; total: number }[];
+    funnel: { etapa: string; cantidad: number; valor: number }[];
+    topDeals: { id: string; titulo: string; valorPonderado: number }[];
 }
 
 export interface PipelineStage {

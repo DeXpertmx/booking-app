@@ -1,13 +1,29 @@
-# Volkern MCP Server v1.2.0
+# Volkern MCP Server (v2.0.0)
 
 Servidor MCP (Model Context Protocol) para integrar Volkern CRM con agentes de IA como Claude, GPT, y otros clientes compatibles con MCP.
 
-## Novedades v1.2.0
-- **Contactos y Empresas**: CRUD completo para gestión de contactos de negocios y empresas
-- **Pipeline de Ventas (Deals)**: Crear, actualizar y mover oportunidades entre etapas
-- **Pronóstico de Ventas**: Acceso a analíticas y predicciones del pipeline
-- **Cotizaciones**: Crear, editar y enviar propuestas de precios a clientes
-- **Contratos**: Generar contratos desde cotizaciones o manualmente, con soporte de firma digital
+## Novedades v2.0.0 - Ciclo Comercial Completo
+
+### Nuevos Módulos
+- **Contactos**: CRUD completo de contactos (personas y empresas)
+- **Deals/Pipeline**: Crear y listar deals del pipeline de ventas
+- **Cotizaciones**: Crear cotizaciones desde ítems del catálogo con precios, descuentos e impuestos
+- **Órdenes de Venta**: Listar, consultar y convertir cotizaciones en órdenes de venta
+- **Contratos**: Convertir cotizaciones aceptadas en contratos con condiciones de pago
+
+### Flujo Comercial Completo vía MCP
+1. `volkern_create_lead` → Capturar lead
+2. `volkern_create_deal` → Abrir oportunidad en pipeline
+3. `volkern_create_cotizacion` → Generar cotización desde catálogo
+4. `volkern_create_orden_from_cotizacion` → Convertir en orden de venta
+5. `volkern_create_contrato_from_cotizacion` → Formalizar contrato
+
+### Catálogo Mejorado (v1.1.0)
+- **Campos personalizados**: Atributos dinámicos por ítem (metros², habitaciones, idioma, etc.)
+- **Categorías multinivel**: Organización jerárquica (Inmuebles > Oficina > Lujo)
+- **Etiquetas**: Tags para filtrado rápido (vip, oportunidad, nuevo)
+- **Galería multimedia**: Imágenes, video tours, documentos técnicos, tours 360°
+- **Precios flexibles**: Pago único, recurrente o por hora con descuentos por volumen
 
 ## Instalación
 
@@ -108,7 +124,16 @@ Agrega la siguiente configuración a tu archivo `claude_desktop_config.json`:
 }
 ```
 
-## Herramientas Disponibles
+## Herramientas Disponibles (35 tools)
+
+### Contactos
+| Herramienta | Descripción |
+|-------------|-------------|
+| `volkern_list_contacts` | Listar contactos con filtros |
+| `volkern_get_contact` | Obtener contacto por ID |
+| `volkern_create_contact` | Crear un nuevo contacto |
+| `volkern_update_contact` | Actualizar un contacto |
+| `volkern_delete_contact` | Eliminar un contacto |
 
 ### Gestión de Leads
 | Herramienta | Descripción |
@@ -157,6 +182,29 @@ Agrega la siguiente configuración a tu archivo `claude_desktop_config.json`:
 |-------------|-------------|
 | `volkern_list_notes` | Listar notas de un lead |
 | `volkern_create_note` | Agregar nota a un lead |
+
+### Deals / Pipeline
+| Herramienta | Descripción |
+|-------------|-------------|
+| `volkern_list_deals` | Listar deals del pipeline con filtros |
+| `volkern_create_deal` | Crear un nuevo deal |
+
+### Cotizaciones
+| Herramienta | Descripción |
+|-------------|-------------|
+| `volkern_create_cotizacion` | Crear cotización desde ítems del catálogo |
+
+### Órdenes de Venta
+| Herramienta | Descripción |
+|-------------|-------------|
+| `volkern_list_ordenes_venta` | Listar órdenes de venta con filtros |
+| `volkern_get_orden_venta` | Obtener detalle de una orden |
+| `volkern_create_orden_from_cotizacion` | Convertir cotización en orden de venta |
+
+### Contratos
+| Herramienta | Descripción |
+|-------------|-------------|
+| `volkern_create_contrato_from_cotizacion` | Convertir cotización en contrato |
 
 ## Ejemplos de Uso
 

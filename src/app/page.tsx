@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ServiceSelection from "@/components/booking/ServiceSelection";
 import DateTimePicker from "@/components/booking/DateTimePicker";
 import LeadForm from "@/components/booking/LeadForm";
@@ -11,6 +11,18 @@ import { EmailService } from "@/lib/email-service";
 import { parseSlotInTenantTimezone } from "@/lib/time-utils";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Detect user's timezone from browser
+const getUserTimezone = (): string => {
+  if (typeof window !== 'undefined') {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return 'UTC';
+    }
+  }
+  return 'UTC';
+};
+
 export default function BookingPage() {
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -18,6 +30,12 @@ export default function BookingPage() {
   const [clientData, setClientData] = useState<Lead | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedDateTime, setConfirmedDateTime] = useState<string | null>(null);
+  const [userTimezone, setUserTimezone] = useState<string>('UTC');
+
+  // Detect user timezone on mount
+  useEffect(() => {
+    setUserTimezone(getUserTimezone());
+  }, []);
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
@@ -71,12 +89,13 @@ export default function BookingPage() {
         }
       }).catch(err => console.warn("Interaction logging failed:", err));
 
-      // 4. Send Emails
+      // 4. Send Emails with user's timezone
       await EmailService.sendBookingConfirmation(data.email, data.nombre, {
         serviceName: selectedService.nombre,
         dateTime: parsedIsoDate,
         duration: selectedService.duracionMinutos || 60,
-        leadId: lead.id
+        leadId: lead.id,
+        userTimezone: userTimezone
       }).catch(err => console.error("Email sending failed:", err));
 
       setConfirmedDateTime(parsedIsoDate);
@@ -182,6 +201,7 @@ export default function BookingPage() {
               clientName={clientData.nombre}
               serviceName={selectedService.nombre}
               dateTime={confirmedDateTime || selectedDateTime}
+              userTimezone={userTimezone}
             />
           </motion.div>
         )}
