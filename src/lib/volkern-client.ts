@@ -102,14 +102,22 @@ export class VolkernClient {
 
     static async getLeadByEmail(email: string): Promise<Lead | null> {
         try {
-            const response = await this.request<any>(`/leads?search=${encodeURIComponent(email)}`);
-            const leads = Array.isArray(response) ? response : (response.leads || []);
+            const response = await this.request<any>(`/leads?search=${encodeURIComponent(email)}&limit=100`);
+            console.log(`[VolkernClient] Search response for ${email}:`, JSON.stringify(response).substring(0, 500));
 
-            if (Array.isArray(leads) && leads.length > 0) {
-                const exactMatch = leads.find((l: Lead) => l.email.toLowerCase() === email.toLowerCase());
+            const leads = this.extractLeadsArray(response);
+
+            if (leads.length > 0) {
+                const exactMatch = leads.find((l: Lead) => l.email?.toLowerCase() === email.toLowerCase());
                 if (exactMatch) {
                     console.log(`[VolkernClient] Found exact match for ${email}: ${exactMatch.id}`);
                     return exactMatch;
+                }
+
+                const partialMatch = leads.find((l: Lead) => l.email?.toLowerCase().includes(email.toLowerCase()));
+                if (partialMatch) {
+                    console.log(`[VolkernClient] Found partial match for ${email}: ${partialMatch.id}`);
+                    return partialMatch;
                 }
             }
             return null;
@@ -119,12 +127,25 @@ export class VolkernClient {
         }
     }
 
+    private static extractLeadsArray(response: any): any[] {
+        if (Array.isArray(response)) return response;
+        if (response?.leads && Array.isArray(response.leads)) return response.leads;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        if (response?.items && Array.isArray(response.items)) return response.items;
+        if (response?.results && Array.isArray(response.results)) return response.results;
+        return [];
+    }
+
     static async upsertLead(leadData: Lead): Promise<Lead> {
         const sanitizedData = Object.fromEntries(
             Object.entries(leadData).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
         ) as Lead;
 
-        const existingLead = await this.getLeadByEmail(sanitizedData.email);
+        let existingLead = await this.getLeadByEmail(sanitizedData.email);
+
+        if (!existingLead && sanitizedData.nombre) {
+            existingLead = await this.getLeadByName(sanitizedData.nombre);
+        }
 
         if (existingLead && existingLead.id) {
             console.log(`[VolkernClient] Lead exists (${existingLead.id}), updating...`);
@@ -142,6 +163,28 @@ export class VolkernClient {
         });
 
         return this.extractLeadFromResponse(response);
+    }
+
+    private static async getLeadByName(name: string): Promise<Lead | null> {
+        try {
+            const searchTerm = name.split(' ')[0];
+            const response = await this.request<any>(`/leads?search=${encodeURIComponent(searchTerm)}&limit=100`);
+            const leads = this.extractLeadsArray(response);
+
+            if (leads.length > 0) {
+                const match = leads.find((l: Lead) =>
+                    l.nombre?.toLowerCase().trim() === name.toLowerCase().trim() ||
+                    l.nombre?.toLowerCase().includes(name.toLowerCase())
+                );
+                if (match) {
+                    console.log(`[VolkernClient] Found lead by name "${name}": ${match.id}`);
+                    return match;
+                }
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
     }
 
     private static extractLeadFromResponse(response: any, fallbackId?: string): Lead {
